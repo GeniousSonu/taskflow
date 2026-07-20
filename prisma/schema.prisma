@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  password   String?
+  avatar     String?
+  color      String   @default("#6366f1")
+  role       String   @default("MEMBER") // ADMIN or MEMBER
+  department String?
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  assignedTasks TaskAssignee[]
+  reportedTasks Task[]         @relation("Reporter")
+  comments      Comment[]
+  notifications Notification[]
+  activityLogs  ActivityLog[]
+  presences     Presence[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  color       String   @default("#6366f1")
+  emoji       String   @default("🟦")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  channels     Channel[]
+  activityLogs ActivityLog[]
+}
+
+model Channel {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  projectId   String
+  order       Int      @default(0)
+  color       String   @default("#6366f1")
+  icon        String   @default("📂")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks        Task[]
+  activityLogs ActivityLog[]
+}
+
+model Task {
+  id             String    @id @default(cuid())
+  title          String
+  description    String?
+  status         String    @default("TODO")
+  priority       String    @default("MEDIUM")
+  reporterId     String?
+  channelId      String
+  startDate      DateTime?
+  dueDate        DateTime?
+  estimatedHours Float?
+  timeSpent      Float?    @default(0)
+  progress       Int       @default(0)
+  order          Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  channel      Channel        @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  reporter     User?          @relation("Reporter", fields: [reporterId], references: [id])
+  assignees    TaskAssignee[]
+  subtasks     Subtask[]
+  comments     Comment[]
+  labels       TaskLabel[]
+  attachments  Attachment[]
+  activityLogs ActivityLog[]
+  notifications Notification[]
+}
+
+model TaskAssignee {
+  id        String   @id @default(cuid())
+  taskId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+}
+
+model Subtask {
+  id         String    @id @default(cuid())
+  title      String
+  taskId     String
+  assigneeId String?
+  status     String    @default("TODO")
+  progress   Int       @default(0)
+  dueDate    DateTime?
+  completed  Boolean   @default(false)
+  order      Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  taskId    String
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task      Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author    User             @relation(fields: [authorId], references: [id])
+  reactions CommentReaction[]
+}
+
+model CommentReaction {
+  id        String   @id @default(cuid())
+  commentId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId, emoji])
+}
+
+model Label {
+  id    String      @id @default(cuid())
+  name  String
+  color String      @default("#6366f1")
+  tasks TaskLabel[]
+}
+
+model TaskLabel {
+  id      String @id @default(cuid())
+  taskId  String
+  labelId String
+
+  task  Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  label Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, labelId])
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  name       String
+  url        String
+  type       String
+  size       Int
+  taskId     String
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  userId    String
+  taskId    String?
+  createdAt DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task? @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  type        String
+  description String
+  projectId   String?
+  channelId   String?
+  taskId      String?
+  userId      String
+  meta        String?
+  createdAt   DateTime @default(now())
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  channel Channel? @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  task    Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id])
+}
+
+model Presence {
+  id        String   @id @default(cuid())
+  userId    String
+  projectId String
+  online    Boolean  @default(true)
+  lastSeen  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+}
