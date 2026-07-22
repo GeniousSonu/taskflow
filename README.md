@@ -52,7 +52,7 @@ The seed script registers the following developers with default password: `passw
 | Name              | Email               | Role   | Department  | Color              |
 | ----------------- | ------------------- | ------ | ----------- | ------------------ |
 | **Sahinur islam** | `sahinur@ibarts.in` | Admin  | Development | Indigo (`#6366f1`) |
-| **Faisal**        | `sandip@ibarts.in`  | Member | QA          | Amber (`#f59e0b`)  |
+| **Faisal**        | `faisal@ibarts.in`  | Member | QA          | Amber (`#f59e0b`)  |
 
 ---
 
