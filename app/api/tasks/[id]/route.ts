@@ -45,9 +45,19 @@ export async function PATCH(
   const { id } = await params
   const body = await req.json()
   const userId = (session.user as any).id
+  const userRole = (session.user as any).role
 
   const current = await prisma.task.findUnique({ where: { id } })
   if (!current) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  // Permission scoping: Creator or Admin only
+  const canEdit = userRole === 'ADMIN' || current.reporterId === userId
+  if (!canEdit) {
+    return NextResponse.json(
+      { error: 'Permission denied. Tasks can only be edited by their creator or an Admin.' },
+      { status: 403 }
+    )
+  }
 
   const { status, priority, progress, title, description } = body
 
@@ -101,6 +111,20 @@ export async function DELETE(
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
+  const userId = (session.user as any).id
+  const userRole = (session.user as any).role
+
+  const current = await prisma.task.findUnique({ where: { id } })
+  if (!current) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const canDelete = userRole === 'ADMIN' || current.reporterId === userId
+  if (!canDelete) {
+    return NextResponse.json(
+      { error: 'Permission denied. Tasks can only be deleted by their creator or an Admin.' },
+      { status: 403 }
+    )
+  }
+
   await prisma.task.delete({ where: { id } })
   return NextResponse.json({ success: true })
 }

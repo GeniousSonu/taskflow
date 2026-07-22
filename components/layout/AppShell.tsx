@@ -16,10 +16,11 @@ import { TaskModal } from '@/components/task/TaskModal'
 import { NotificationPanel } from '@/components/notifications/NotificationPanel'
 import { CreateTaskModal } from '@/components/task/CreateTaskModal'
 import { CommandPalette } from '@/components/search/CommandPalette'
+import { ProfileModal } from '@/components/user/ProfileModal'
 import { cn } from '@/lib/utils'
 
 interface AppShellProps {
-  user: { id: string; name: string; email: string; color: string; role: string }
+  user: { id: string; name: string; email: string; color: string; role: string; avatar?: string }
   children: React.ReactNode
 }
 
@@ -36,6 +37,7 @@ export function AppShell({ user, children }: AppShellProps) {
 
   const [showNotifications, setShowNotifications] = useState(false)
   const [showCreateTask, setShowCreateTask] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [newChannelName, setNewChannelName] = useState('')
   const [showAddChannel, setShowAddChannel] = useState(false)
@@ -104,7 +106,8 @@ export function AppShell({ user, children }: AppShellProps) {
     },
   })
 
-  const initials = user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
+  const initials = user.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U'
+  const isImageAvatar = user.avatar?.startsWith('http') || user.avatar?.startsWith('data:')
 
   const handleProjectSelect = (p: any) => {
     setSelectedProject(p)
@@ -113,7 +116,7 @@ export function AppShell({ user, children }: AppShellProps) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: 'hsl(222 47% 6%)' }}>
+    <div className="flex h-screen overflow-hidden bg-background text-primary">
       {/* Sidebar */}
       <aside
         className={cn(
@@ -280,18 +283,25 @@ export function AppShell({ user, children }: AppShellProps) {
         </div>
 
         {/* User + footer toggle */}
-        <div className="p-2 space-y-1 border-t" style={{ borderColor: 'hsl(222 25% 14%)' }}>
+        <div className="p-2 space-y-1 border-t border-white/10">
           <div className={cn('flex items-center gap-3 p-2 rounded-lg', sidebarCollapsed ? 'justify-center' : '')}>
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 cursor-pointer"
+              onClick={() => setShowProfileModal(true)}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 cursor-pointer overflow-hidden ring-2 ring-white/10 hover:ring-indigo-500 transition-all"
               style={{ background: user.color || '#6366f1' }}
-              title={user.name}
+              title="Click to edit profile"
             >
-              {initials}
+              {isImageAvatar ? (
+                <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+              ) : user.avatar ? (
+                <span>{user.avatar}</span>
+              ) : (
+                <span>{initials}</span>
+              )}
             </div>
             {!sidebarCollapsed && (
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-bold text-white truncate">{user.name}</div>
+              <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setShowProfileModal(true)}>
+                <div className="text-xs font-bold text-white truncate hover:underline">{user.name}</div>
                 <div className="text-[10px] text-slate-500 truncate">{user.role}</div>
               </div>
             )}
@@ -313,20 +323,19 @@ export function AppShell({ user, children }: AppShellProps) {
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/60" onClick={() => setMobileMenuOpen(false)} />
-          <aside className="relative w-64 flex flex-col" style={{ background: 'hsl(222 40% 8%)', borderRight: '1px solid hsl(222 25% 14%)' }}>
-            <div className="flex items-center justify-between h-16 px-4 border-b" style={{ borderColor: 'hsl(222 25% 14%)' }}>
+          <aside className="relative w-64 flex flex-col border-r border-white/10 bg-slate-950">
+            <div className="flex items-center justify-between h-16 px-4 border-b border-white/10">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'hsl(239 84% 67%)' }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-600">
                   <Zap className="w-4 h-4 text-white" />
                 </div>
                 <span className="font-bold text-white">IbWorks</span>
               </div>
-              <button onClick={() => setMobileMenuOpen(false)} style={{ color: 'hsl(215 15% 45%)' }}>
+              <button onClick={() => setMobileMenuOpen(false)} className="text-slate-400">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <nav className="flex-1 py-4 px-2 space-y-1">
-              {/* Project choices for mobile */}
               <div className="px-2 py-1 text-slate-500 text-[10px] uppercase font-bold mb-2">Projects</div>
               {projects.map(p => (
                 <button
@@ -346,14 +355,12 @@ export function AppShell({ user, children }: AppShellProps) {
       {/* Main Container */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Header */}
-        <header className="h-16 flex items-center gap-4 px-4 lg:px-6 flex-shrink-0" style={{
+        <header className="h-16 flex items-center gap-4 px-4 lg:px-6 flex-shrink-0 border-b border-white/10" style={{
           background: 'hsl(222 40% 8%)',
-          borderBottom: '1px solid hsl(222 25% 14%)',
         }}>
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="lg:hidden p-2 rounded-lg"
-            style={{ color: 'hsl(215 20% 55%)' }}
+            className="lg:hidden p-2 rounded-lg text-slate-400"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -363,12 +370,11 @@ export function AppShell({ user, children }: AppShellProps) {
             <CommandPalette />
           </div>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-3">
             {/* Create task button */}
             <button
               onClick={() => setShowCreateTask(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all hover:opacity-90"
-              style={{ background: 'hsl(239 84% 67%)' }}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-white transition-all hover:opacity-90 bg-indigo-600 shadow-md"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">New Task</span>
@@ -378,13 +384,11 @@ export function AppShell({ user, children }: AppShellProps) {
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 rounded-lg relative transition-colors"
-                style={{ color: 'hsl(215 20% 55%)', background: showNotifications ? 'hsl(222 35% 14%)' : 'transparent' }}
+                className="p-2 rounded-lg relative transition-colors text-slate-400 hover:text-white"
               >
                 <Bell className="w-5 h-5" />
                 {notifications > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-xs font-bold text-white flex items-center justify-center"
-                    style={{ background: 'hsl(239 84% 67%)', fontSize: '10px' }}>
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-xs font-bold text-white flex items-center justify-center bg-indigo-600" style={{ fontSize: '10px' }}>
                     {notifications}
                   </span>
                 )}
@@ -394,13 +398,21 @@ export function AppShell({ user, children }: AppShellProps) {
               )}
             </div>
 
-            {/* Avatar */}
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
+            {/* Clickable Profile Avatar */}
+            <button
+              onClick={() => setShowProfileModal(true)}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white cursor-pointer overflow-hidden ring-2 ring-white/10 hover:ring-indigo-500 hover:scale-105 transition-all shadow-md"
               style={{ background: user.color || '#6366f1' }}
+              title="Click to edit profile settings"
             >
-              {initials}
-            </div>
+              {isImageAvatar ? (
+                <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+              ) : user.avatar ? (
+                <span>{user.avatar}</span>
+              ) : (
+                <span>{initials}</span>
+              )}
+            </button>
           </div>
         </header>
 
@@ -410,8 +422,7 @@ export function AppShell({ user, children }: AppShellProps) {
         </main>
 
         {/* Global sticky link footer */}
-        <footer className="absolute bottom-0 left-0 right-0 h-10 border-t flex items-center justify-center text-xs z-10"
-          style={{ background: 'hsl(222 40% 7%)', borderColor: 'hsl(222 25% 12%)', color: 'hsl(215 15% 45%)' }}>
+        <footer className="absolute bottom-0 left-0 right-0 h-10 border-t border-white/10 flex items-center justify-center text-xs z-10 text-slate-500" style={{ background: 'hsl(222 40% 7%)' }}>
           <span>
             &copy; 2026 IbWorks &mdash;{' '}
             <a
@@ -429,6 +440,7 @@ export function AppShell({ user, children }: AppShellProps) {
       {/* Modals */}
       {isTaskModalOpen && <TaskModal />}
       {showCreateTask && <CreateTaskModal onClose={() => setShowCreateTask(false)} />}
+      {showProfileModal && <ProfileModal user={user} onClose={() => setShowProfileModal(false)} />}
     </div>
   )
 }

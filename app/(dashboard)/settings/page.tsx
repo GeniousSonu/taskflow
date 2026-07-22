@@ -1,23 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { Settings, User, Bell, Shield, Database } from 'lucide-react'
+import { Settings, User, Bell, Palette, Moon, Sun, Check } from 'lucide-react'
+import { useTheme, ACCENT_COLORS } from '@/components/theme/ThemeProvider'
 
 export default function SettingsPage() {
-  const [activeSec, setActiveSec] = useState('workspace')
+  const [activeSec, setActiveSec] = useState('appearance')
+  const { theme, accent, setTheme, setAccent } = useTheme()
 
   const secs = [
+    { id: 'appearance', label: 'Theme & Appearance', icon: Palette },
     { id: 'workspace', label: 'Workspace Configuration', icon: Settings },
-    { id: 'profile', label: 'My Profile', icon: User },
     { id: 'notifications', label: 'Notifications & Alerts', icon: Bell },
-    { id: 'database', label: 'Database & Backups', icon: Database },
   ]
 
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="border-b pb-4" style={{ borderColor: 'hsl(222 25% 14%)' }}>
-        <h1 className="text-xl font-bold text-white">System Settings</h1>
+      <div className="border-b pb-4 border-white/10">
+        <h1 className="text-xl font-bold">System Settings</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -40,10 +41,74 @@ export default function SettingsPage() {
         </div>
 
         {/* Configurations panel */}
-        <div className="lg:col-span-3 p-6 rounded-xl space-y-6" style={{ background: 'hsl(222 35% 12%)', border: '1px solid hsl(222 25% 18%)' }}>
+        <div className="lg:col-span-3 p-6 rounded-xl space-y-6 border border-white/10" style={{ background: 'hsl(222 35% 12%)' }}>
+          {activeSec === 'appearance' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-base font-semibold">Theme & Appearance</h2>
+                <p className="text-xs text-slate-400 mt-0.5">Customize your interface theme and color accents across IbWorks.</p>
+              </div>
+
+              {/* Theme Mode Switcher */}
+              <div className="space-y-3">
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Interface Theme</label>
+                <div className="grid grid-cols-2 gap-4 max-w-md">
+                  <button
+                    onClick={() => setTheme('dark')}
+                    className={`flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${theme === 'dark' ? 'border-indigo-500 bg-indigo-500/10' : 'border-white/10 hover:bg-white/5'}`}
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center">
+                      <Moon className="w-5 h-5 text-indigo-400" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white">Dark Mode</div>
+                      <div className="text-xs text-slate-400">Default dark theme</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setTheme('light')}
+                    className={`flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${theme === 'light' ? 'border-indigo-500 bg-indigo-500/10' : 'border-white/10 hover:bg-white/5'}`}
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 flex items-center justify-center">
+                      <Sun className="w-5 h-5 text-amber-500" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white">Light Mode</div>
+                      <div className="text-xs text-slate-400">Bright clean theme</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Accent Color Picker */}
+              <div className="space-y-3 pt-2">
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Accent Theme Color</label>
+                <div className="flex flex-wrap gap-3">
+                  {ACCENT_COLORS.map(c => {
+                    const isSelected = accent.hex === c.hex
+                    return (
+                      <button
+                        key={c.hex}
+                        onClick={() => setAccent(c)}
+                        className={`flex items-center gap-2.5 px-4 py-2 rounded-xl border text-sm font-semibold transition-all ${isSelected ? 'border-white bg-white/10 ring-2' : 'border-white/10 hover:bg-white/5'}`}
+                        style={{ ringColor: c.hex }}
+                      >
+                        <span className="w-4 h-4 rounded-full flex items-center justify-center text-white" style={{ background: c.hex }}>
+                          {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                        </span>
+                        <span>{c.name}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeSec === 'workspace' && (
             <div className="space-y-4">
-              <h2 className="text-base font-semibold text-white">Workspace Configuration</h2>
+              <h2 className="text-base font-semibold">Workspace Configuration</h2>
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Workspace Slug</label>
@@ -51,7 +116,7 @@ export default function SettingsPage() {
                     readOnly
                     type="text"
                     value="blue-lane-cabinetry"
-                    className="w-full px-3 py-2 rounded-lg text-sm bg-white/5 border border-white/10 text-white outline-none"
+                    className="w-full px-3 py-2 rounded-lg text-sm bg-white/5 border border-white/10 outline-none"
                   />
                 </div>
                 <div>
@@ -59,15 +124,7 @@ export default function SettingsPage() {
                   <input
                     type="text"
                     defaultValue="Blue Lane Cabinetry"
-                    className="w-full px-3 py-2 rounded-lg text-sm bg-white/5 border border-white/10 text-white outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Description</label>
-                  <textarea
-                    rows={3}
-                    defaultValue="WooCommerce storefront redesign — product templates, cart/checkout, PayPal integration, QA & handoff."
-                    className="w-full px-3 py-2 rounded-lg text-sm bg-white/5 border border-white/10 text-white outline-none resize-none focus:border-indigo-500"
+                    className="w-full px-3 py-2 rounded-lg text-sm bg-white/5 border border-white/10 outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div className="flex justify-end pt-2">
@@ -79,24 +136,10 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {activeSec === 'profile' && (
-            <div className="space-y-4">
-              <h2 className="text-base font-semibold text-white">My Profile Settings</h2>
-              <p className="text-xs text-slate-400">Manage your profile details and role preferences</p>
-            </div>
-          )}
-
           {activeSec === 'notifications' && (
             <div className="space-y-4">
-              <h2 className="text-base font-semibold text-white">Notifications & Alerts</h2>
+              <h2 className="text-base font-semibold">Notifications & Alerts</h2>
               <p className="text-xs text-slate-400">Configure email and real-time socket alert channels</p>
-            </div>
-          )}
-
-          {activeSec === 'database' && (
-            <div className="space-y-4">
-              <h2 className="text-base font-semibold text-white">Database & Backups</h2>
-              <p className="text-xs text-slate-400">Prisma database management and export options</p>
             </div>
           )}
         </div>

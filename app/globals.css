@@ -12,10 +12,22 @@
     --text-muted: 215 15% 45%;
     --accent: 239 84% 67%;
     --accent-hover: 239 84% 72%;
+    --accent-hex: #6366f1;
     --success: 160 84% 39%;
     --warning: 38 92% 50%;
     --error: 0 84% 60%;
     --radius: 0.5rem;
+  }
+
+  html.light {
+    --background: 210 40% 98%;
+    --surface: 0 0% 100%;
+    --surface-2: 210 40% 94%;
+    --surface-3: 210 40% 88%;
+    --border: 214 32% 85%;
+    --text-primary: 222 47% 11%;
+    --text-secondary: 215 16% 40%;
+    --text-muted: 215 16% 58%;
   }
 }
 
@@ -30,6 +42,12 @@
     font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  html.light body {
+    background-color: #f8fafc;
+    color: #0f172a;
   }
 
   ::-webkit-scrollbar {
@@ -61,6 +79,11 @@
     background: rgba(255, 255, 255, 0.04);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  html.light .glass {
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.08);
   }
 
   .animate-shimmer {

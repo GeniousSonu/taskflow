@@ -59,14 +59,19 @@ export function KanbanBoard() {
     const task = tasks.find(t => t.id === taskId)
     if (!task || task.status === newStatus) return
 
+    // Optimistic update
     updateTask({ id: taskId, status: newStatus })
 
     try {
-      await fetch(`/api/tasks/${taskId}`, {
+      const res = await fetch(`/api/tasks/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       })
+      if (!res.ok) {
+        // Revert if permission denied or error
+        updateTask({ id: taskId, status: task.status })
+      }
     } catch {
       updateTask({ id: taskId, status: task.status })
     }

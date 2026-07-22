@@ -11,6 +11,20 @@ export async function POST(
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id: taskId } = await params
+  const userId = (session.user as any).id
+  const userRole = (session.user as any).role
+
+  const parentTask = await prisma.task.findUnique({ where: { id: taskId } })
+  if (!parentTask) return NextResponse.json({ error: 'Task not found' }, { status: 404 })
+
+  const canEdit = userRole === 'ADMIN' || parentTask.reporterId === userId
+  if (!canEdit) {
+    return NextResponse.json(
+      { error: 'Permission denied. Subtasks can only be added by the task creator or an Admin.' },
+      { status: 403 }
+    )
+  }
+
   const { title } = await req.json()
 
   const maxOrder = await prisma.subtask.aggregate({

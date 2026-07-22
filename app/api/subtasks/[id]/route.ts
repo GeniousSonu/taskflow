@@ -12,6 +12,23 @@ export async function PATCH(
 
   const { id } = await params
   const body = await req.json()
+  const userId = (session.user as any).id
+  const userRole = (session.user as any).role
+
+  const existingSubtask = await prisma.subtask.findUnique({
+    where: { id },
+    include: { task: true },
+  })
+  if (!existingSubtask) return NextResponse.json({ error: 'Subtask not found' }, { status: 404 })
+
+  const canEdit = userRole === 'ADMIN' || existingSubtask.task.reporterId === userId
+  if (!canEdit) {
+    return NextResponse.json(
+      { error: 'Permission denied. Subtasks can only be modified by the task creator or an Admin.' },
+      { status: 403 }
+    )
+  }
+
   const { completed, status, progress } = body
 
   const subtask = await prisma.subtask.update({
