@@ -11,26 +11,34 @@ Pre-seeded with the **Blue Lane Cabinetry** WooCommerce storefront redesign proj
 ## 🚀 Getting Started
 
 ### 1. Installation
+
 Install all dependencies:
+
 ```bash
 npm install
 ```
 
 ### 2. Configure Environment
+
 Set up your local configuration by copying `.env.example`:
+
 ```bash
 cp .env.example .env
 ```
 
 ### 3. Initialize SQLite Database & Seed Data
+
 Generate Prisma client, push models, and preload the **Blue Lane Cabinetry** milestone data:
+
 ```bash
 npx prisma db push
 npx prisma db seed
 ```
 
 ### 4. Run the Dev Server
+
 Starts both the Next.js server compiler and the integrated Socket.IO server at port `3000`:
+
 ```bash
 npm run dev
 ```
@@ -41,11 +49,10 @@ npm run dev
 
 The seed script registers the following developers with default password: `password123`.
 
-| Name | Email | Role | Department | Color |
-|---|---|---|---|---|
-| **Sahinur Rahman** | `sahinur@bluelane.com` | Admin | Development | Indigo (`#6366f1`) |
-| **Om Prakash** | `om@bluelane.com` | Member | Development | Emerald (`#10b981`) |
-| **Sandip Shaw** | `sandip@bluelane.com` | Member | QA | Amber (`#f59e0b`) |
+| Name              | Email               | Role   | Department  | Color              |
+| ----------------- | ------------------- | ------ | ----------- | ------------------ |
+| **Sahinur islam** | `sahinur@ibarts.in` | Admin  | Development | Indigo (`#6366f1`) |
+| **Faisal**        | `sandip@ibarts.in`  | Member | QA          | Amber (`#f59e0b`)  |
 
 ---
 

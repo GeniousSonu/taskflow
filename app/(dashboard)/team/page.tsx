@@ -77,7 +77,7 @@ export default function TeamPage() {
                 type="text"
                 value={newMember.name}
                 onChange={e => setNewMember({ ...newMember, name: e.target.value })}
-                placeholder="e.g. Sahinur Rahman"
+                placeholder="e.g. Sahinur Islam"
                 className="w-full px-3 py-2 rounded-lg text-sm bg-white/5 border border-white/10 text-white outline-none focus:border-indigo-500"
               />
             </div>

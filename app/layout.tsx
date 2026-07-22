@@ -1,17 +1,23 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import { Providers } from './providers'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { Providers } from "./providers";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: 'TaskFlow — Collaborative Project Management',
-  description: 'Real-time collaborative task management for modern development teams. Kanban boards, subtasks, comments, and live collaboration.',
-  keywords: 'project management, kanban, task management, collaboration, real-time',
-}
+  title: "TaskFlow — Collaborative Project Management",
+  description:
+    "Real-time collaborative task management for modern development teams.  subtasks, comments, and live collaboration.",
+  keywords:
+    "project management, kanban, task management, collaboration, real-time",
+};
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -21,5 +27,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>{children}</Providers>
       </body>
     </html>
-  )
+  );
 }
