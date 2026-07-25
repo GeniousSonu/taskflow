@@ -92,7 +92,7 @@ export default function SettingsPage() {
                         key={c.hex}
                         onClick={() => setAccent(c)}
                         className={`flex items-center gap-2.5 px-4 py-2 rounded-xl border text-sm font-semibold transition-all ${isSelected ? 'border-white bg-white/10 ring-2' : 'border-white/10 hover:bg-white/5'}`}
-                        style={{ ringColor: c.hex }}
+                        style={{ '--tw-ring-color': c.hex } as React.CSSProperties}
                       >
                         <span className="w-4 h-4 rounded-full flex items-center justify-center text-white" style={{ background: c.hex }}>
                           {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}

@@ -44,7 +44,7 @@ export async function PATCH(
   const siblings = await prisma.subtask.findMany({
     where: { taskId: subtask.taskId },
   })
-  const completedCount = siblings.filter(s => s.completed).length
+  const completedCount = siblings.filter((s: { completed: boolean }) => s.completed).length
   const newProgress = siblings.length > 0 ? Math.round((completedCount / siblings.length) * 100) : 0
 
   await prisma.task.update({

@@ -16,7 +16,7 @@ const schema = z.object({
   priority: z.string(),
   status: z.string(),
   dueDate: z.string().optional(),
-  estimatedHours: z.preprocess((val) => (val === '' || isNaN(Number(val)) ? undefined : Number(val)), z.number().optional()),
+  estimatedHours: z.number().optional(),
 })
 type FormData = z.infer<typeof schema>
 
@@ -39,8 +39,9 @@ export function CreateTaskModal({ onClose }: CreateTaskModalProps) {
     },
   })
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: { priority: 'MEDIUM', status: 'TODO' },
   })
 
@@ -71,7 +72,12 @@ export function CreateTaskModal({ onClose }: CreateTaskModalProps) {
 
   function onSubmit(data: FormData) {
     setErrorMessage('')
-    createTask.mutate({ ...data, assigneeIds: selectedAssignees })
+    const payload = {
+      ...data,
+      estimatedHours: data.estimatedHours !== undefined && !isNaN(Number(data.estimatedHours)) ? Number(data.estimatedHours) : undefined,
+      assigneeIds: selectedAssignees,
+    }
+    createTask.mutate(payload)
   }
 
   function toggleAssignee(id: string) {

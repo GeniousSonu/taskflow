@@ -15,25 +15,24 @@ import {
   Users,
   BarChart3,
   GitBranch,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
+// Allow plain usernames (e.g. "admin") or real emails
 const schema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().min(1, "Email or username is required"),
   password: z.string().min(1, "Password is required"),
 });
 type FormData = z.infer<typeof schema>;
 
 const DEMO_USERS = [
-  { name: "Sahinur Islam", email: "sahinur@ibarts.in", role: "Admin" },
-  { name: "Faisal", email: "faisal@ibarts.in", role: "Member" },
+  { name: "Sahinur Islam", email: "admin", password: "admin", role: "Admin" },
+  { name: "Faisal", email: "faisal@ibarts.in", password: "admin", role: "Member" },
 ];
 
 const FEATURES = [
-  {
-    icon: Zap,
-    label: "Real-time collaboration",
-    desc: "See changes instantly",
-  },
+  { icon: Zap, label: "Real-time collaboration", desc: "See changes instantly" },
   { icon: GitBranch, label: "Kanban boards", desc: "Drag & drop tasks" },
   { icon: Users, label: "Team presence", desc: "Know who's online" },
   { icon: BarChart3, label: "Analytics", desc: "Track team progress" },
@@ -43,6 +42,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -62,16 +62,16 @@ export default function LoginPage() {
       redirect: false,
     });
     if (result?.error) {
-      setError("Invalid email or password");
+      setError("Invalid credentials. Try admin / admin");
       setLoading(false);
     } else {
       router.push("/board");
     }
   }
 
-  function loginAs(email: string) {
+  function loginAs(email: string, password: string) {
     setValue("email", email);
-    setValue("password", "password123");
+    setValue("password", password);
   }
 
   return (
@@ -138,13 +138,8 @@ export default function LoginPage() {
                   />
                 </div>
                 <div>
-                  <div className="font-medium text-white text-sm">
-                    {f.label}
-                  </div>
-                  <div
-                    className="text-xs"
-                    style={{ color: "hsl(215 15% 45%)" }}
-                  >
+                  <div className="font-medium text-white text-sm">{f.label}</div>
+                  <div className="text-xs" style={{ color: "hsl(215 15% 45%)" }}>
                     {f.desc}
                   </div>
                 </div>
@@ -180,7 +175,7 @@ export default function LoginPage() {
             Sign in to your workspace
           </p>
 
-          {/* Demo quick-login */}
+          {/* Quick-login cards */}
           <div
             className="mb-6 p-4 rounded-xl"
             style={{
@@ -198,7 +193,8 @@ export default function LoginPage() {
               {DEMO_USERS.map((u) => (
                 <button
                   key={u.email}
-                  onClick={() => loginAs(u.email)}
+                  type="button"
+                  onClick={() => loginAs(u.email, u.password)}
                   className="flex items-center justify-between p-2 rounded-lg text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
                   style={{
                     background: "rgba(255,255,255,0.04)",
@@ -210,17 +206,10 @@ export default function LoginPage() {
                       className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
                       style={{
                         background:
-                          u.name === "Sahinur Islam"
-                            ? "#6366f1"
-                            : u.name === "Om Prakash"
-                              ? "#10b981"
-                              : "#f59e0b",
+                          u.role === "Admin" ? "#6366f1" : "#10b981",
                       }}
                     >
-                      {u.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
+                      {u.name.split(" ").map((n) => n[0]).join("")}
                     </div>
                     <div>
                       <div className="text-sm font-medium text-white">
@@ -249,12 +238,13 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Email / Username */}
             <div>
               <label
                 className="block text-sm font-medium mb-1.5"
                 style={{ color: "hsl(215 20% 65%)" }}
               >
-                Email
+                Email or Username
               </label>
               <div className="relative">
                 <Mail
@@ -263,15 +253,16 @@ export default function LoginPage() {
                 />
                 <input
                   {...register("email")}
-                  type="email"
-                  placeholder="you@example.com"
+                  type="text"
+                  placeholder="admin or you@example.com"
+                  autoComplete="username"
                   className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-gray-500 outline-none transition-all focus:ring-2"
                   style={
                     {
                       background: "hsl(222 35% 12%)",
                       border: "1px solid hsl(222 25% 20%)",
                       "--tw-ring-color": "hsl(239 84% 67%)",
-                    } as any
+                    } as React.CSSProperties
                   }
                 />
               </div>
@@ -282,6 +273,7 @@ export default function LoginPage() {
               )}
             </div>
 
+            {/* Password with eye toggle */}
             <div>
               <label
                 className="block text-sm font-medium mb-1.5"
@@ -296,17 +288,32 @@ export default function LoginPage() {
                 />
                 <input
                   {...register("password")}
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-gray-500 outline-none transition-all focus:ring-2"
+                  autoComplete="current-password"
+                  className="w-full pl-10 pr-12 py-3 rounded-xl text-sm text-white placeholder-gray-500 outline-none transition-all focus:ring-2"
                   style={
                     {
                       background: "hsl(222 35% 12%)",
                       border: "1px solid hsl(222 25% 20%)",
                       "--tw-ring-color": "hsl(239 84% 67%)",
-                    } as any
+                    } as React.CSSProperties
                   }
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:text-white focus:outline-none"
+                  style={{ color: "hsl(215 15% 45%)" }}
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
               </div>
               {errors.password && (
                 <p className="mt-1 text-xs text-red-400">
@@ -345,8 +352,10 @@ export default function LoginPage() {
             className="mt-6 text-center text-xs"
             style={{ color: "hsl(215 15% 45%)" }}
           >
-            Default password for all demo accounts:{" "}
-            <code className="text-indigo-400">password123</code>
+            Demo credentials:{" "}
+            <code className="text-indigo-400">admin</code>{" "}
+            /{" "}
+            <code className="text-indigo-400">admin</code>
           </p>
         </motion.div>
       </div>

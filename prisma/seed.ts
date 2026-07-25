@@ -6,22 +6,35 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Seeding database for IbWorks...')
 
-  // Clear existing data
-  await prisma.user.deleteMany()
-  await prisma.project.deleteMany()
-  await prisma.channel.deleteMany()
-  await prisma.task.deleteMany()
-  await prisma.subtask.deleteMany()
-  await prisma.comment.deleteMany()
-  await prisma.notification.deleteMany()
+  // Disable FK constraints so we can delete in any order (SQLite)
+  await prisma.$executeRawUnsafe('PRAGMA foreign_keys = OFF')
+
+  // Clear existing data (children first to be safe even without FK)
   await prisma.activityLog.deleteMany()
+  await prisma.notification.deleteMany()
+  await prisma.taskAssignee.deleteMany()
+  await prisma.subtask.deleteMany()
+  await prisma.commentReaction.deleteMany()
+  await prisma.comment.deleteMany()
+  await prisma.taskLabel.deleteMany()
+  await prisma.attachment.deleteMany()
+  await prisma.task.deleteMany()
+  await prisma.channel.deleteMany()
+  await prisma.project.deleteMany()
+  await prisma.presence.deleteMany()
+  await prisma.session.deleteMany()
+  await prisma.account.deleteMany()
+  await prisma.user.deleteMany()
+
+  // Re-enable FK constraints
+  await prisma.$executeRawUnsafe('PRAGMA foreign_keys = ON')
 
   // Create default 2 users
-  const password = await bcrypt.hash('password123', 10)
+  const password = await bcrypt.hash('admin', 10)
   const sahinur = await prisma.user.create({
     data: {
       name: 'Sahinur Islam',
-      email: 'sahinur@ibarts.in',
+      email: 'admin',
       password,
       role: 'ADMIN',
       color: '#6366f1',
