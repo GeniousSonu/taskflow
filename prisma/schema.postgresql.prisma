@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -14,7 +15,7 @@ model User {
   password   String?
   avatar     String?
   color      String   @default("#6366f1")
-  role       String   @default("MEMBER") // ADMIN or MEMBER
+  role       String   @default("MEMBER")
   department String?
   active     Boolean  @default(true)
   createdAt  DateTime @default(now())

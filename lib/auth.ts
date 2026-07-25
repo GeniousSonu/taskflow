@@ -30,23 +30,32 @@ export const authOptions: NextAuthOptions = {
             return null
           }
 
-          const user = await prisma.user.findUnique({
-            where: { email: credentials.email },
+          const trimmedIdentifier = credentials.email.trim()
+          
+          // Match by email or name (case-insensitive fallback)
+          const user = await prisma.user.findFirst({
+            where: {
+              OR: [
+                { email: trimmedIdentifier },
+                { email: trimmedIdentifier.toLowerCase() },
+                { name: trimmedIdentifier },
+              ],
+            },
           })
 
           if (!user) {
-            console.warn(`[NextAuth Warning] User not found: "${credentials.email}"`)
+            console.warn(`[NextAuth Warning] User not found matching: "${credentials.email}"`)
             return null
           }
 
           if (!user.password) {
-            console.warn(`[NextAuth Warning] User "${credentials.email}" has no password set`)
+            console.warn(`[NextAuth Warning] User "${user.email}" has no password set`)
             return null
           }
 
           const valid = await bcrypt.compare(credentials.password, user.password)
           if (!valid) {
-            console.warn(`[NextAuth Warning] Invalid password for user: "${credentials.email}"`)
+            console.warn(`[NextAuth Warning] Invalid password for user: "${user.email}"`)
             return null
           }
 
@@ -75,7 +84,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/login',
-    error: '/login', // Prevents NextAuth default generic error page
+    error: '/login',
   },
   callbacks: {
     async jwt({ token, user }) {

@@ -26,27 +26,28 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { name, email, role, department, color, avatar } = body
+  const { name, email, password: userPassword, role, department, color, avatar } = body
 
-  if (!name || !email) {
-    return NextResponse.json({ error: 'Name and Email are required' }, { status: 400 })
+  if (!name?.trim() || !email?.trim()) {
+    return NextResponse.json({ error: 'Name and Email or Username are required' }, { status: 400 })
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } })
-  if (existing) return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 })
+  const existing = await prisma.user.findUnique({ where: { email: email.trim() } })
+  if (existing) return NextResponse.json({ error: 'User with this email or username already exists' }, { status: 400 })
 
   const bcrypt = await import('bcryptjs')
-  const password = await bcrypt.hash('password123', 10)
+  // Default password is 'admin' if not provided
+  const hashedPassword = await bcrypt.hash(userPassword || 'admin', 10)
 
   const user = await prisma.user.create({
     data: {
-      name,
-      email,
+      name: name.trim(),
+      email: email.trim(),
       role: (role || 'MEMBER').toUpperCase(),
       department: department || 'Development',
       color: color || '#6366f1',
-      avatar: avatar || name.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
-      password,
+      avatar: avatar || name.trim().split(' ').map((n: string) => n[0]).join('').toUpperCase(),
+      password: hashedPassword,
     },
     select: { id: true, name: true, email: true, color: true, role: true, department: true, avatar: true },
   })

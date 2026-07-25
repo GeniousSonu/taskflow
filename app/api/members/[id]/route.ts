@@ -22,8 +22,8 @@ export async function PATCH(
   const user = await prisma.user.update({
     where: { id },
     data: {
-      ...(name !== undefined && { name }),
-      ...(email !== undefined && { email }),
+      ...(name !== undefined && { name: name.trim() }),
+      ...(email !== undefined && { email: email.trim() }),
       ...(role !== undefined && { role }),
       ...(department !== undefined && { department }),
       ...(color !== undefined && { color }),
@@ -53,6 +53,15 @@ export async function DELETE(
   if (id === currentUserId) {
     return NextResponse.json({ error: 'Cannot delete yourself' }, { status: 400 })
   }
+
+  // Clean up child relations to prevent foreign key errors
+  await prisma.taskAssignee.deleteMany({ where: { userId: id } })
+  await prisma.commentReaction.deleteMany({ where: { userId: id } })
+  await prisma.comment.deleteMany({ where: { authorId: id } })
+  await prisma.notification.deleteMany({ where: { userId: id } })
+  await prisma.activityLog.deleteMany({ where: { userId: id } })
+  await prisma.presence.deleteMany({ where: { userId: id } })
+  await prisma.task.updateMany({ where: { reporterId: id }, data: { reporterId: null } })
 
   await prisma.user.delete({ where: { id } })
   return NextResponse.json({ success: true })
