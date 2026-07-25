@@ -2,45 +2,44 @@
 
 import { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { getSocket, connectSocket, disconnectSocket } from '@/lib/socket'
+import { getPusherClient, disconnectPusher } from '@/lib/pusher-client'
 import { useAppStore } from '@/lib/store'
 
 export function RealtimeManager() {
   const { data: session } = useSession()
-  const { updateTask, setOnlineUsers, addTypingUser, removeTypingUser } = useAppStore()
+  const { updateTask, addTask, removeTask } = useAppStore()
 
   useEffect(() => {
+    // Only connect when user is authenticated
     if (!session?.user) return
 
-    connectSocket()
-    const socket = getSocket()
+    // Skip on server (SSR safety)
+    if (typeof window === 'undefined') return
 
-    const workspaceId = 'blue-lane-cabinetry'
-    const userId = (session.user as any).id || session.user.email
-    const userName = session.user.name || 'User'
+    const pusher = getPusherClient()
+    if (!pusher) return
 
-    socket.emit('join-workspace', { workspaceId, userId, userName })
+    const channel = pusher.subscribe('presence-workspace')
 
-    socket.on('workspace-presence', (users: string[]) => {
-      setOnlineUsers(users)
+    // Real-time task updates from other users
+    channel.bind('task-updated', (data: any) => {
+      updateTask(data)
     })
 
-    socket.on('user-typing', ({ userId, userName, context }) => {
-      addTypingUser({ userId, userName, context })
+    channel.bind('task-created', (data: any) => {
+      addTask(data)
     })
 
-    socket.on('user-stopped-typing', ({ userId }) => {
-      removeTypingUser(userId)
-    })
-
-    socket.on('task-sync', (task) => {
-      updateTask(task)
+    channel.bind('task-deleted', (data: { id: string }) => {
+      removeTask(data.id)
     })
 
     return () => {
-      disconnectSocket()
+      channel.unbind_all()
+      pusher.unsubscribe('presence-workspace')
+      disconnectPusher()
     }
-  }, [session, updateTask, setOnlineUsers, addTypingUser, removeTypingUser])
+  }, [session, updateTask, addTask, removeTask])
 
   return null
 }

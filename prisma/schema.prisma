@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -179,7 +180,7 @@ model CommentReaction {
 
 model Label {
   id    String      @id @default(cuid())
-  name  String
+  name  String      @unique
   color String      @default("#6366f1")
   tasks TaskLabel[]
 }

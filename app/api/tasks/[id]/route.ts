@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { broadcastTaskUpdate, broadcastTaskDeleted } from '@/lib/broadcast'
 
 export async function GET(
   _req: NextRequest,
@@ -50,7 +51,6 @@ export async function PATCH(
   const current = await prisma.task.findUnique({ where: { id } })
   if (!current) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  // Permission scoping: Creator or Admin only
   const canEdit = userRole === 'ADMIN' || current.reporterId === userId
   if (!canEdit) {
     return NextResponse.json(
@@ -78,7 +78,7 @@ export async function PATCH(
     },
   })
 
-  // Log activity
+  // Activity logging
   if (status && status !== current.status) {
     await prisma.activityLog.create({
       data: {
@@ -89,16 +89,9 @@ export async function PATCH(
       },
     })
   }
-  if (progress !== undefined && progress !== current.progress) {
-    await prisma.activityLog.create({
-      data: {
-        type: 'PROGRESS_UPDATED',
-        description: `updated progress from ${current.progress}% → ${progress}%`,
-        taskId: id,
-        userId,
-      },
-    })
-  }
+
+  // Broadcast update to all clients
+  await broadcastTaskUpdate(task)
 
   return NextResponse.json(task)
 }
@@ -126,5 +119,9 @@ export async function DELETE(
   }
 
   await prisma.task.delete({ where: { id } })
+
+  // Broadcast deletion to all clients
+  await broadcastTaskDeleted(id)
+
   return NextResponse.json({ success: true })
 }

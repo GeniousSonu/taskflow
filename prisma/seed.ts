@@ -6,10 +6,7 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Seeding database for IbWorks...')
 
-  // Disable FK constraints so we can delete in any order (SQLite)
-  await prisma.$executeRawUnsafe('PRAGMA foreign_keys = OFF')
-
-  // Clear existing data (children first to be safe even without FK)
+  // Clear existing data (children first to prevent foreign key errors)
   await prisma.activityLog.deleteMany()
   await prisma.notification.deleteMany()
   await prisma.taskAssignee.deleteMany()
@@ -25,9 +22,6 @@ async function main() {
   await prisma.session.deleteMany()
   await prisma.account.deleteMany()
   await prisma.user.deleteMany()
-
-  // Re-enable FK constraints
-  await prisma.$executeRawUnsafe('PRAGMA foreign_keys = ON')
 
   // Create default 2 users
   const password = await bcrypt.hash('admin', 10)
