@@ -5,12 +5,20 @@ import bcrypt from 'bcryptjs'
 
 const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET
 
-if (!secret && process.env.NODE_ENV === 'production') {
-  console.warn('⚠️ [NextAuth Warning]: NEXTAUTH_SECRET is not set in environment variables!')
+if (process.env.NODE_ENV === 'production') {
+  if (!secret) {
+    console.error('🚨 [CRITICAL CONFIG ERROR]: NEXTAUTH_SECRET is missing in environment variables!')
+  }
+  if (!process.env.DATABASE_URL) {
+    console.error('🚨 [CRITICAL CONFIG ERROR]: DATABASE_URL is missing in environment variables!')
+  }
 }
+
+const isProduction = process.env.NODE_ENV === 'production' || process.env.NEXTAUTH_URL?.startsWith('https://')
 
 export const authOptions: NextAuthOptions = {
   secret: secret || 'default-dev-secret-key-change-in-production',
+  useSecureCookies: isProduction,
   providers: [
     CredentialsProvider({
       name: 'Credentials',
