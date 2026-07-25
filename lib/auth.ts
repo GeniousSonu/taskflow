@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
           const trimmedIdentifier = credentials.email.trim()
           
           // Match by email or name (case-insensitive fallback)
-          const user = await prisma.user.findFirst({
+          let user = await prisma.user.findFirst({
             where: {
               OR: [
                 { email: trimmedIdentifier },
@@ -42,6 +42,25 @@ export const authOptions: NextAuthOptions = {
               ],
             },
           })
+
+          // Production Auto-Provisioning Guard: If database is empty or admin user is missing,
+          // automatically seed the default admin account when admin credentials are used.
+          if (!user && (trimmedIdentifier.toLowerCase() === 'admin' || trimmedIdentifier.toLowerCase() === 'sahinur@ibarts.in')) {
+            console.log('[NextAuth] Admin user missing in production DB. Auto-seeding default admin account...')
+            const hashedPassword = await bcrypt.hash('admin', 10)
+            user = await prisma.user.create({
+              data: {
+                name: 'Sahinur Islam',
+                email: 'admin',
+                password: hashedPassword,
+                role: 'ADMIN',
+                color: '#6366f1',
+                department: 'Management',
+                avatar: 'SI',
+              },
+            })
+            console.log('[NextAuth] Default admin account successfully auto-created!')
+          }
 
           if (!user) {
             console.warn(`[NextAuth Warning] User not found matching: "${credentials.email}"`)
